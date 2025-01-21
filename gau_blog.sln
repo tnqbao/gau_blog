@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gau_blog", "gau_blog\gau_blog.csproj", "{FCFBF590-62E1-4E7B-A5D4-AEEE2DBD0B95}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCFBF590-62E1-4E7B-A5D4-AEEE2DBD0B95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCFBF590-62E1-4E7B-A5D4-AEEE2DBD0B95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCFBF590-62E1-4E7B-A5D4-AEEE2DBD0B95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCFBF590-62E1-4E7B-A5D4-AEEE2DBD0B95}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

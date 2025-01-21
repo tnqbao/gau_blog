@@ -1,0 +1,10 @@
+
+#Enviroment
+.env.*
+*.env
+.env
+
+#idle
+.idea
+obj
+bin
