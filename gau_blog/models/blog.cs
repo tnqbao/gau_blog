@@ -29,7 +29,7 @@ namespace gau_blog.models
         public Blog(string title, string body, long authorId, int upvote, int downvote, string tags, DateTime createdAt)
         {
             Title = title;
-            this.Body = body;
+            Body = body;
         }
     }
 }
