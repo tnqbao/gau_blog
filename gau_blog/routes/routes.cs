@@ -1,6 +1,11 @@
 namespace gau_blog.routes;
 
-public class Routes
+public static class Routes
 {
-    
+    public static void MapRoutes(WebApplication app)
+    {
+        app.UseMiddleware<CORSMiddleware>();
+        var rootGroup = app.MapGroup("/api/storisy");
+        BlogRoutes.MapRoutes(rootGroup);
+    }
 }

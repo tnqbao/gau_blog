@@ -1,6 +1,7 @@
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
+using DotNetEnv;
 
 namespace gau_blog.middlewares;
 
@@ -9,10 +10,10 @@ public class JwtMiddleware
     private readonly RequestDelegate _next;
     private readonly string _secret;
 
-    public JwtMiddleware(RequestDelegate next, string secret)
+    public JwtMiddleware(RequestDelegate next, IConfiguration configuration)
     {
         _next = next;
-        _secret = secret;
+        _secret = Env.GetString("JWT_SECRET");
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -23,8 +24,9 @@ public class JwtMiddleware
         {
             try
             {
-                var userId = ValidateJwtToken(token);
-                if (userId != null)
+                ValidateToken(token);
+                var userId = GetUserIdFromToken(token);
+                if (!string.IsNullOrEmpty(userId))
                 {
                     context.Items["UserId"] = userId;
                 }
@@ -40,7 +42,7 @@ public class JwtMiddleware
         await _next(context);
     }
 
-    private string? ValidateJwtToken(string token)
+    public void ValidateToken(string token)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_secret);
@@ -52,11 +54,13 @@ public class JwtMiddleware
             ValidateIssuer = false,
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero
-        }, out SecurityToken validatedToken);
+        }, out _);
+    }
 
-        var jwtToken = (JwtSecurityToken)validatedToken;
-        var userId = jwtToken.Claims.FirstOrDefault(x => x.Type == "user_id")?.Value;
-
-        return userId;
+    public string? GetUserIdFromToken(string token)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var jwtToken = tokenHandler.ReadJwtToken(token);
+        return jwtToken.Claims.FirstOrDefault(x => x.Type == "user_id")?.Value;
     }
 }
