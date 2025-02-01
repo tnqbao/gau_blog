@@ -1,35 +1,21 @@
 using gau_blog.apis;
-using gau_blog.models;
+using gau_blog.routes;
+
 
 public static class BlogRoutes
 {
-    public static void MapRoutes(WebApplication app)
+    public static void MapRoutes(IEndpointRouteBuilder routes, BlogApi blogApi)
     {
-        var blogApi = app.Services.GetRequiredService<BlogApi>();
 
-        // GET: /blog/{id}
-        app.MapGet("/blog/{id}", async (long id) =>
-        {
-            await blogApi.GetBlogByIdAsync(id);
-        });
+        var blogRoutes = routes.MapGroup("/blog");
 
-        // POST: /blog
-        app.MapPost("/blog", async (Blog blog) =>
-        {
-            await blogApi.CreateBlogAsync(blog);
-        });
-        
-        // DELETE: /blog/{id}
-        app.MapDelete("/blog/{id}", async (long id) =>
-        {
-            await blogApi.DeleteBlogByIdAsync(id);
-        });
-        
-        // PUT: /blog/{id}
-        app.MapPut("/blog/{id}", async (long id, Blog blog) =>
-        {
-            blog.Id = id;
-            await blogApi.UpdateBlogAsync(blog);
-        });
+        blogRoutes.MapGet("/{id}", async (long id) => await blogApi.GetBlogByIdAsync(id));
+
+        var privateRoutes = blogRoutes.MapGroup("/");
+        privateRoutes.RequireJwtAuthentication();
+        privateRoutes.MapPut("/", async (HttpContext context) => await blogApi.CreateBlogAsync(context));
+        privateRoutes.MapDelete("/{id}",
+            async (HttpContext context, long id) => await blogApi.DeleteBlogByIdAsync(context, id));
+        privateRoutes.MapPut("/{id}", async (HttpContext context,long id) => await blogApi.UpdateBlogAsync(context, id));
     }
 }

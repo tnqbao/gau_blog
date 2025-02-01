@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using System.Linq;
 using System.Threading.Tasks;
 
+namespace gau_blog.middlewares;
 public class CORSMiddleware
 {
     private readonly RequestDelegate _next;

@@ -31,17 +31,17 @@ public class BlogRepository
         return blog;
     }
 
-    public async Task<Blog> DeleteBlogByIdAsync(long id)
+    public async Task<bool> DeleteBlogByIdAsync(long id)
     {
         var blog = await _context.Blogs.FindAsync(id);
         if (blog == null)
         {
-            return null;
+            return false;
         }
 
         _context.Blogs.Remove(blog);
         await _context.SaveChangesAsync();
-        return blog;
+        return true;
     }
 
     public async Task<Blog> UpdateBlogAsync(Blog blog)
