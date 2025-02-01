@@ -18,7 +18,7 @@ namespace gau_blog.config
             var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
             var user = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "postgres";
             var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
-            var database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "gau_blog";
+            var database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "database";
 
             var connectionString = $"Host={host};Port={port};Username={user};Password={password};Database={database}";
 
