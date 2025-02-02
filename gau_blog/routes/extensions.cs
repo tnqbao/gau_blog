@@ -9,7 +9,7 @@ public static class Extensions
     {
         return group.AddEndpointFilter(async (context, next) =>
         {
-            var token = context.HttpContext.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            var token = context.HttpContext.Request.Cookies["auth_token"];
             if (string.IsNullOrEmpty(token))
             {
                 context.HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;

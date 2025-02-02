@@ -71,7 +71,7 @@ namespace gau_blog.apis
             try
             {
                 var newBlog = await _blogRepository.CreateBlogAsync(blog);
-                return Results.Created($"/blogs/{newBlog.Id}", newBlog);
+                return Results.Created($"/blog/{newBlog.Id}", newBlog);
             }
             catch (Exception e)
             {

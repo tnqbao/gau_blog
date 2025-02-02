@@ -2,7 +2,6 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using DotNetEnv;
 
 namespace gau_blog.middlewares
 {
@@ -14,7 +13,7 @@ namespace gau_blog.middlewares
         public JwtMiddleware(RequestDelegate next, IConfiguration configuration)
         {
             _next = next;
-            _jwtSecret = Env.GetString("JWT_SECRET");  // Lấy key từ biến môi trường
+            _jwtSecret = configuration["JWT_SECRET"] ?? throw new InvalidOperationException("JWT_SECRET is missing from configuration.");
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -37,61 +36,36 @@ namespace gau_blog.middlewares
                 return;
             }
 
-            // Lấy claims từ token
-            var claims = principal.Claims.ToList();
+            context.Items["UserId"] = principal.FindFirst("user_id")?.Value ?? string.Empty;
+            context.Items["Permission"] = principal.FindFirst("permission")?.Value ?? string.Empty;
+            context.Items["Fullname"] = principal.FindFirst("fullname")?.Value ?? string.Empty;
 
-            // Gán thông tin từ claims vào context
-            var userIdClaim = claims.FirstOrDefault(c => c.Type == "user_id")?.Value;
-            var permissionClaim = claims.FirstOrDefault(c => c.Type == "permission")?.Value;
-            var fullnameClaim = claims.FirstOrDefault(c => c.Type == "fullname")?.Value;
-
-            if (userIdClaim != null)
-            {
-                context.Items["UserId"] = userIdClaim;
-            }
-
-            if (permissionClaim != null)
-            {
-                context.Items["Permission"] = permissionClaim;
-            }
-
-            if (fullnameClaim != null)
-            {
-                context.Items["Fullname"] = fullnameClaim;
-            }
-
-            await _next(context); // Tiếp tục xử lý request
+            await _next(context);
         }
 
-        // Phương thức xác thực token
         public Task<ClaimsPrincipal?> ValidateToken(string tokenString)
         {
-            var key = Encoding.UTF8.GetBytes(_jwtSecret); // Khóa bí mật
-
+            var tokenHandler = new JwtSecurityTokenHandler();
             try
             {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                
-                // Không in khóa bí mật vào console để tránh rủi ro bảo mật
-                Console.WriteLine("Token: " + tokenString);
-                
-                // Xác thực token
-                var principal = tokenHandler.ValidateToken(tokenString, new TokenValidationParameters
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSecret));
+                var validationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key), // Sử dụng khóa bí mật
-                    ValidateIssuer = false,  // Không kiểm tra Issuer (có thể thay đổi nếu cần)
-                    ValidateAudience = false,  // Không kiểm tra Audience (có thể thay đổi nếu cần)
-                    ClockSkew = TimeSpan.Zero  // Không có độ trễ thời gian
-                }, out _);
+                    IssuerSigningKey = securityKey,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero, 
+                    RequireExpirationTime = true,
+                    ValidateLifetime = true
+                };
 
-                return Task.FromResult(principal); // Trả về ClaimsPrincipal nếu token hợp lệ
+                var principal = tokenHandler.ValidateToken(tokenString, validationParameters, out _);
+                return Task.FromResult<ClaimsPrincipal?>(principal);
             }
-            catch (Exception ex)
+            catch
             {
-                // In thông báo lỗi chi tiết nếu không hợp lệ
-                Console.WriteLine("Token validation failed: " + ex.Message);
-                return Task.FromResult<ClaimsPrincipal?>(null);  // Trả về null nếu không hợp lệ
+                return Task.FromResult<ClaimsPrincipal?>(null);
             }
         }
     }
