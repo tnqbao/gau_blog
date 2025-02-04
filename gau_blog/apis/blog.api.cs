@@ -1,19 +1,17 @@
 using gau_blog.models;
 using gau_blog.repositories;
+using gau_blog.utils;
 
 namespace gau_blog.apis
 {
     public class BlogApi
     {
         private readonly BlogRepository _blogRepository;
-        
-        
+
         public BlogApi(BlogRepository blogRepository)
         {
             _blogRepository = blogRepository;
         }
-        
-        
 
         public async Task<IResult> GetBlogByIdAsync(long id)
         {
@@ -38,31 +36,31 @@ namespace gau_blog.apis
 
         public async Task<IResult> CreateBlogAsync(HttpContext context)
         {
-            if (!context.Items.TryGetValue("UserId", out var userIdObj) || userIdObj is not long userId)
+            if (!context.Items.TryGetValue("UserId", out var userIdObj) || !long.TryParse(userIdObj?.ToString(), out long userId))
             {
-                return Results.Unauthorized();
+                return Results.Json(new { message = "User is not authenticated." }, statusCode: StatusCodes.Status401Unauthorized);
             }
 
-            Blog? blog;
+            CreateBlogDto? blogDto;
             try
             {
-                blog = await context.Request.ReadFromJsonAsync<Blog>();
+                blogDto = await context.Request.ReadFromJsonAsync<CreateBlogDto>();
             }
             catch
             {
                 return Results.BadRequest(new { message = "Invalid JSON format" });
             }
 
-            if (blog == null || string.IsNullOrEmpty(blog.Title) || string.IsNullOrEmpty(blog.Body))
+            if (blogDto == null || string.IsNullOrEmpty(blogDto.Title) || string.IsNullOrEmpty(blogDto.Body))
             {
                 return Results.BadRequest(new { message = "Title and Body are required" });
             }
 
-            blog = new Blog
+            var blog = new Blog
             {
-                Title = blog.Title,
-                Body = blog.Body,
-                Tags = blog.Tags,
+                Title = blogDto.Title,
+                Body = blogDto.Body,
+                Tags = "",
                 Upvote = 0,
                 Downvote = 0,
                 AuthorId = userId
@@ -71,13 +69,14 @@ namespace gau_blog.apis
             try
             {
                 var newBlog = await _blogRepository.CreateBlogAsync(blog);
-                return Results.Created($"/blog/{newBlog.Id}", newBlog);
+                return Results.Created($"/blogs/{newBlog.Id}", new { message = "Blog created successfully!", blog = newBlog });
             }
             catch (Exception e)
             {
                 return Results.Problem($"An error occurred: {e.Message}", statusCode: 500);
             }
         }
+
 
         public async Task<IResult> DeleteBlogByIdAsync(HttpContext context, long id)
         {
