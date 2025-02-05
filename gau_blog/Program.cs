@@ -5,20 +5,21 @@ using gau_blog.config;
 using gau_blog.middlewares;
 using gau_blog.repositories;
 using gau_blog.routes;
+using gau_blog.services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
 builder.Services.ConfigureDatabase();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<JsonSerializerOptions>(JsonSerializerConfiguration.GetJsonSerializerOptions());
 builder.Services.AddScoped<BlogRepository>();
 builder.Services.AddScoped<BlogApi>();
+builder.Services.AddSingleton<JwtService>();
 
-builder.WebHost.UseUrls("http://*:7008");
 Env.Load();
-var app = builder.Build();
 
-app.UseMiddleware<JwtMiddleware>();
+var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
